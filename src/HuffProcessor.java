@@ -169,7 +169,6 @@ public class HuffProcessor {
 				}
 			}
 		}
-		out.close();
 	}
 
 	private HuffNode readTreeHeader(BitInputStream in) {
