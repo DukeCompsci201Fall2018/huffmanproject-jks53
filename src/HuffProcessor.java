@@ -1,3 +1,4 @@
+import java.util.PriorityQueue;
 
 /**
  * Although this class has a history of several years, it is starting from a
@@ -58,17 +59,44 @@ public class HuffProcessor {
 
 	private void writeHeader(HuffNode root, BitOutputStream out) {
 		// TODO Auto-generated method stub
+		
 
 	}
 
 	private String[] makeCodingsFromTree(HuffNode root) {
-		// TODO Auto-generated method stub
-		return null;
+		String[] encodings = new String[ALPH_SIZE + 1];
+	    codingHelper(root,"",encodings);
+		return encodings;
+	}
+
+	private void codingHelper(HuffNode root, String path, String[] encodings) {
+		if(root==null)return;   
+		if (root.myLeft==null && root.myRight==null) {
+		        encodings[root.myValue] = path;
+		        return;
+		   }
+		else {
+			codingHelper(root.myLeft, path+"0", encodings);
+			codingHelper(root.myRight, path+"1", encodings);
+		}
+		
 	}
 
 	private HuffNode makeTreeFromCounts(int[] counts) {
-		// TODO Auto-generated method stub
-		return null;
+		PriorityQueue<HuffNode> pq = new PriorityQueue<>();
+		for(int i:counts) {
+			if(i!=0)
+				pq.add(new HuffNode(i, counts[i],null, null));
+		}
+		
+		while(pq.size()>1) {
+			HuffNode l =pq.remove();
+			HuffNode r = pq.remove();
+			HuffNode n=new HuffNode(0,l.myWeight+r.myWeight,l,r);
+			pq.add(n);
+		}
+		HuffNode root = pq.remove();
+		return root;
 	}
 
 	private int[] readForCounts(BitInputStream in) {
@@ -120,7 +148,7 @@ public class HuffProcessor {
 					cur = cur.myLeft;
 				else
 					cur = cur.myRight;
-				if (cur.myValue != 0 && cur.myValue != 1) {
+				if (cur.myRight==null && cur.myLeft == null) {
 					if (cur.myValue == PSEUDO_EOF)
 						break;
 					else {
@@ -139,8 +167,8 @@ public class HuffProcessor {
 		if (bits == -1)
 			throw new HuffException("wrong input");
 		if (bits == 0) {
-			HuffNode left = readTreeHeader();
-			HuffNode right = readTreeHeader();
+			HuffNode left = readTreeHeader(in);
+			HuffNode right = readTreeHeader(in);
 			return new HuffNode(0, 0, left, right);
 		} else {
 			int val = in.readBits(9);
