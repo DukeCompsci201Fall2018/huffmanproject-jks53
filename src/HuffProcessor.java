@@ -58,8 +58,18 @@ public class HuffProcessor {
 	}
 
 	private void writeHeader(HuffNode root, BitOutputStream out) {
-		// TODO Auto-generated method stub
-		
+		if(root==null)
+			return;
+		if(root.myLeft!=null && root.myRight!=null) {
+			out.write(0);
+		}
+		else {
+			out.write(1);
+			out.writeBits(BITS_PER_WORD+1, root.myValue);
+		}
+		writeHeader(root.myLeft, out);
+		writeHeader(root.myRight, out);
+
 
 	}
 
@@ -165,13 +175,13 @@ public class HuffProcessor {
 	private HuffNode readTreeHeader(BitInputStream in) {
 		int bits = in.readBits(1);
 		if (bits == -1)
-			throw new HuffException("wrong input");
+			throw new HuffException("bad input, no PSUEDO_EOF");
 		if (bits == 0) {
 			HuffNode left = readTreeHeader(in);
 			HuffNode right = readTreeHeader(in);
 			return new HuffNode(0, 0, left, right);
 		} else {
-			int val = in.readBits(9);
+			int val = in.readBits(BITS_PER_WORD+1);
 			return new HuffNode(val, 0, null, null);
 		}
 	}
